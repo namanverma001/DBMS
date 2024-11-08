@@ -1,3 +1,5 @@
+-- Corrected Code
+
 -- Create Student Table
 CREATE TABLE Student (
     studentid INT PRIMARY KEY,
@@ -81,77 +83,30 @@ FROM (
 
 -- 9. Create a view containing the total number of students whose instructor belongs to “Pune”
 CREATE VIEW PuneInstructorStudents AS
-SELECT i.instructorid, COUNT(s.studentid) AS total_students
+SELECT i.instructorid, i.specialization, COUNT(s.studentid) AS total_students
 FROM Instructor i
 LEFT JOIN Student s ON i.instructorid = s.instructorid
 WHERE i.instructorcity = 'Pune'
-GROUP BY i.instructorid;
+GROUP BY i.instructorid, i.specialization;
+
+-- 10. Operations on PuneInstructorStudents View
 
 -- 10.1 List All Specializations of Instructors in Pune
 SELECT DISTINCT specialization
-FROM Instructor
-WHERE instructorcity = 'Pune';
+FROM PuneInstructorStudents;
 
 -- 10.2 Count Students for Each Instructor in Pune
-SELECT i.instructorname, COUNT(s.studentid) AS student_count
-FROM Instructor i
-LEFT JOIN Student s ON i.instructorid = s.instructorid
-WHERE i.instructorcity = 'Pune'
-GROUP BY i.instructorid;
+SELECT i.instructorname, ps.total_students
+FROM PuneInstructorStudents ps
+JOIN Instructor i ON ps.instructorid = i.instructorid;
 
 -- 10.3 Find the Number of Students Grouped by Specialization of Instructors in Pune
-SELECT i.specialization, COUNT(s.studentid) AS student_count
-FROM Instructor i
-LEFT JOIN Student s ON i.instructorid = s.instructorid
-WHERE i.instructorcity = 'Pune'
-GROUP BY i.specialization;
-
--- 10.4 List Instructors from Pune with No Students
-SELECT instructorname
-FROM Instructor i
-LEFT JOIN Student s ON i.instructorid = s.instructorid
-WHERE i.instructorcity = 'Pune' AND s.studentid IS NULL;
-
--- Additional Queries with Join of 3 Tables and Aggregate Functions
-
--- 1. Find total students taught by instructors in each city
-SELECT i.instructorcity, COUNT(s.studentid) AS total_students
-FROM Instructor i
-LEFT JOIN Student s ON i.instructorid = s.instructorid
-GROUP BY i.instructorcity;
-
--- 2. Find instructors with students not from their own city and total such students
-SELECT i.instructorname, COUNT(s.studentid) AS students_not_in_city
-FROM Instructor i
-JOIN Student s ON i.instructorid = s.instructorid
-WHERE s.studentcity <> i.instructorcity
-GROUP BY i.instructorid;
-
--- 3. Find average students per specialization across all cities
-SELECT i.specialization, AVG(students_count) AS avg_students
-FROM (
-    SELECT i.specialization, COUNT(s.studentid) AS students_count
-    FROM Instructor i
-    LEFT JOIN Student s ON i.instructorid = s.instructorid
-    GROUP BY i.instructorid
-) AS counts
+SELECT specialization, SUM(total_students) AS student_count
+FROM PuneInstructorStudents
 GROUP BY specialization;
 
--- 4. List specializations with more than 1 instructor and total students for each
-SELECT specialization, COUNT(DISTINCT i.instructorid) AS instructors, COUNT(s.studentid) AS total_students
+-- 10.4 List Instructors from Pune with No Students
+SELECT i.instructorname
 FROM Instructor i
-LEFT JOIN Student s ON i.instructorid = s.instructorid
-GROUP BY specialization
-HAVING COUNT(DISTINCT i.instructorid) > 1;
-
--- 5. Find the city with the highest average students per instructor
-SELECT instructorcity, AVG(students_count) AS avg_students
-FROM (
-    SELECT i.instructorcity, COUNT(s.studentid) AS students_count
-    FROM Instructor i
-    LEFT JOIN Student s ON i.instructorid = s.instructorid
-    GROUP BY i.instructorid
-) AS city_counts
-GROUP BY instructorcity
-ORDER BY avg_students DESC
-LIMIT 1;
+LEFT JOIN PuneInstructorStudents ps ON i.instructorid = ps.instructorid
+WHERE i.instructorcity = 'Pune' AND ps.total_students = 0;

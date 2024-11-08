@@ -1,94 +1,85 @@
 import mysql.connector
 
-# Database connection function
 def connect_to_database():
-    try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="your_password",  # Replace 'your_password' with your MySQL root password
-            database="SampleDB"
-        )
-        if conn.is_connected():
-            print("Connected to MySQL database")
-        return conn
-    except mysql.connector.Error as err:
-        print(f"Error: {err}")
-        return None
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="naman",
+        database="Pconnect"
+    )
 
-# Function to add a new employee
-def add_employee(conn):
-    name = input("Enter employee name: ")
-    position = input("Enter employee position: ")
-    salary = float(input("Enter employee salary: "))
-    cursor = conn.cursor()
-    query = "INSERT INTO Employees (name, position, salary) VALUES (%s, %s, %s)"
-    cursor.execute(query, (name, position, salary))
-    conn.commit()
-    print("Employee added successfully!")
+def add_student():
+    db = connect_to_database()
+    cursor = db.cursor()
+    roll = int(input("Enter roll number: "))
+    name = input("Enter name: ")
+    sql = "INSERT INTO student (roll, name) VALUES (%s, %s)"
+    val = (roll, name)
+    cursor.execute(sql, val)
+    db.commit()
+    print("Student added successfully!")
+    cursor.close()
+    db.close()
 
-# Function to view all employees
-def view_employees(conn):
-    cursor = conn.cursor()
-    query = "SELECT * FROM Employees"
-    cursor.execute(query)
-    rows = cursor.fetchall()
-    print("ID | Name | Position | Salary")
-    for row in rows:
-        print(row)
+def delete_student():
+    db = connect_to_database()
+    cursor = db.cursor()
+    roll = int(input("Enter roll number of the student to delete: "))
+    sql = "DELETE FROM student WHERE roll = %s"
+    val = (roll,)
+    cursor.execute(sql, val)
+    db.commit()
+    print("Student deleted successfully!")
+    cursor.close()
+    db.close()
 
-# Function to update employee details
-def update_employee(conn):
-    emp_id = int(input("Enter employee ID to update: "))
-    name = input("Enter new name: ")
-    position = input("Enter new position: ")
-    salary = float(input("Enter new salary: "))
-    cursor = conn.cursor()
-    query = "UPDATE Employees SET name = %s, position = %s, salary = %s WHERE id = %s"
-    cursor.execute(query, (name, position, salary, emp_id))
-    conn.commit()
-    print("Employee updated successfully!")
+def edit_student():
+    db = connect_to_database()
+    cursor = db.cursor()
+    roll = int(input("Enter roll number of the student to edit: "))
+    new_name = input("Enter the new name: ")
+    sql = "UPDATE student SET name = %s WHERE roll = %s"
+    val = (new_name, roll)
+    cursor.execute(sql, val)
+    db.commit()
+    print("Student record updated successfully!")
+    cursor.close()
+    db.close()
 
-# Function to delete an employee
-def delete_employee(conn):
-    emp_id = int(input("Enter employee ID to delete: "))
-    cursor = conn.cursor()
-    query = "DELETE FROM Employees WHERE id = %s"
-    cursor.execute(query, (emp_id,))
-    conn.commit()
-    print("Employee deleted successfully!")
+def view_students():
+    db = connect_to_database()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM student")
+    results = cursor.fetchall()
+    print("Student Records:")
+    for row in results:
+        print(f"Roll: {row[0]}, Name: {row[1]}")
+    cursor.close()
+    db.close()
 
-# Main menu
-def main_menu():
-    conn = connect_to_database()
-    if conn is None:
-        print("Failed to connect to database.")
-        return
+def main():
     while True:
-        print("\nMenu:")
-        print("1. Add Employee")
-        print("2. View Employees")
-        print("3. Update Employee")
-        print("4. Delete Employee")
+        print("\n--- Student Database Menu ---")
+        print("1. Add Student")
+        print("2. Delete Student")
+        print("3. Edit Student")
+        print("4. View Students")
         print("5. Exit")
+        choice = input("Enter your choice (1-5): ")
         
-        choice = int(input("Enter your choice: "))
-        
-        if choice == 1:
-            add_employee(conn)
-        elif choice == 2:
-            view_employees(conn)
-        elif choice == 3:
-            update_employee(conn)
-        elif choice == 4:
-            delete_employee(conn)
-        elif choice == 5:
-            conn.close()
-            print("Exiting program.")
+        if choice == '1':
+            add_student()
+        elif choice == '2':
+            delete_student()
+        elif choice == '3':
+            edit_student()
+        elif choice == '4':
+            view_students()
+        elif choice == '5':
+            print("Exiting the program.")
             break
         else:
             print("Invalid choice. Please try again.")
 
-# Run the program
 if __name__ == "__main__":
-    main_menu()
+    main()
